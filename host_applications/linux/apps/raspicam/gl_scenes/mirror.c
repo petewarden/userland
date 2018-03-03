@@ -91,7 +91,7 @@ static int mirror_redraw(RASPITEX_STATE *raspitex_state) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Bind the OES texture which is used to render the camera preview
-    glBindTexture(GL_TEXTURE_EXTERNAL_OES, raspitex_state->texture);
+    glBindTexture(GL_TEXTURE_EXTERNAL_OES, raspitex_state->textures[0]);
 
     offset += 0.05;
     GLCHK(glUseProgram(mirror_shader.program));

@@ -265,8 +265,8 @@ static int teapot_redraw(RASPITEX_STATE *raspitex_state)
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
    /* Bind the OES texture which is used to render the camera preview */
-   glBindTexture(GL_TEXTURE_EXTERNAL_OES, raspitex_state->texture);
-   draw_wavefront(state->model, raspitex_state->texture);
+   glBindTexture(GL_TEXTURE_EXTERNAL_OES, raspitex_state->textures[0]);
+   draw_wavefront(state->model, raspitex_state->textures[0]);
    return 0;
 }
 

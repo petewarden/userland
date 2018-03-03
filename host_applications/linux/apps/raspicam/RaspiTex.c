@@ -48,6 +48,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gl_scenes/sobel.h"
 #include "gl_scenes/square.h"
 #include "gl_scenes/teapot.h"
+#include "gl_scenes/timeshift.h"
 #include "gl_scenes/vcsm_square.h"
 #include "gl_scenes/yuv.h"
 
@@ -92,14 +93,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define DEFAULT_WIDTH   640
 #define DEFAULT_HEIGHT  480
+#define DEFAULT_TEXTURE_COUNT (30)
 
 #define CommandGLScene   1
 #define CommandGLWin     2
+#define CommandGLTextureCount (3)
 
 static COMMAND_LIST cmdline_commands[] =
 {
    { CommandGLScene, "-glscene",  "gs",  "GL scene square,teapot,mirror,yuv,sobel,vcsm_square", 1 },
    { CommandGLWin,   "-glwin",    "gw",  "GL window settings <'x,y,w,h'>", 1 },
+   { CommandGLTextureCount,   "-gltexture_count",    "gw",  "How many textures to buffer", 1 },
 };
 
 static int cmdline_commands_size = sizeof(cmdline_commands) / sizeof(cmdline_commands[0]);
@@ -162,8 +166,24 @@ int raspitex_parse_cmdline(RASPITEX_STATE *state,
             state->scene_id = RASPITEX_SCENE_SOBEL;
          else if (strcmp(arg2, "vcsm_square") == 0)
             state->scene_id = RASPITEX_SCENE_VCSM_SQUARE;
+         else if (strcmp(arg2, "timeshift") == 0)
+            state->scene_id = RASPITEX_SCENE_TIMESHIFT;
          else
             vcos_log_error("Unknown scene %s", arg2);
+
+         used = 2;
+         break;
+      }
+      case CommandGLTextureCount: // How many textures to buffer
+      {
+         int tmp;
+         tmp = sscanf(arg2, "%d",
+               &state->texture_count);
+         if (tmp != 1)
+         {
+            // Default to safe size on parse error
+	   state->texture_count = DEFAULT_TEXTURE_COUNT;
+         }
 
          used = 2;
          break;
@@ -243,7 +263,7 @@ static void raspitex_do_capture(RASPITEX_STATE *state)
  */
 static int check_egl_image(RASPITEX_STATE *state)
 {
-   if (state->egl_image == EGL_NO_IMAGE_KHR &&
+   if (state->egl_images[state->texture_index] == EGL_NO_IMAGE_KHR &&
          state->y_egl_image == EGL_NO_IMAGE_KHR &&
          state->u_egl_image == EGL_NO_IMAGE_KHR &&
          state->v_egl_image == EGL_NO_IMAGE_KHR)
@@ -591,6 +611,9 @@ int raspitex_init(RASPITEX_STATE *state)
       case RASPITEX_SCENE_VCSM_SQUARE:
          rc = vcsm_square_open(state);
          break;
+      case RASPITEX_SCENE_TIMESHIFT:
+         rc = timeshift_open(state);
+         break;
       default:
          rc = -1;
          break;
@@ -647,7 +670,9 @@ void raspitex_set_defaults(RASPITEX_STATE *state)
    state->display = EGL_NO_DISPLAY;
    state->surface = EGL_NO_SURFACE;
    state->context = EGL_NO_CONTEXT;
-   state->egl_image = EGL_NO_IMAGE_KHR;
+   for (int i = 0; i < RASPITEX_TEXTURES_MAX; ++i) {
+     state->egl_images[i] = EGL_NO_IMAGE_KHR;
+   }
    state->y_egl_image = EGL_NO_IMAGE_KHR;
    state->u_egl_image = EGL_NO_IMAGE_KHR;
    state->v_egl_image = EGL_NO_IMAGE_KHR;
@@ -655,7 +680,9 @@ void raspitex_set_defaults(RASPITEX_STATE *state)
    state->width = DEFAULT_WIDTH;
    state->height = DEFAULT_HEIGHT;
    state->scene_id = RASPITEX_SCENE_SQUARE;
-
+   state->texture_count = DEFAULT_TEXTURE_COUNT;
+   state->texture_index = 0;
+   
    state->ops.create_native_window = raspitexutil_create_native_window;
    state->ops.gl_init = raspitexutil_gl_init_1_0;
    state->ops.update_model = raspitexutil_update_model;

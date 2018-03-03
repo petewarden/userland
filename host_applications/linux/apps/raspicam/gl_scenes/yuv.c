@@ -124,7 +124,7 @@ static int yuv_redraw(RASPITEX_STATE *raspitex_state)
     GLCHK(glDrawArrays(GL_TRIANGLES, 0, 6));
 
     // RGB plane
-    GLCHK(glBindTexture(GL_TEXTURE_EXTERNAL_OES, raspitex_state->texture));
+    GLCHK(glBindTexture(GL_TEXTURE_EXTERNAL_OES, raspitex_state->textures[0]));
     GLCHK(glVertexAttrib2f(yuv_shader.attribute_locations[1], -1.0f, 0.0f));
     GLCHK(glDrawArrays(GL_TRIANGLES, 0, 6));
 

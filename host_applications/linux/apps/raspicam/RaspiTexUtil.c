@@ -49,9 +49,9 @@ void raspitexutil_gl_term(RASPITEX_STATE *raspitex_state)
    vcos_log_trace("%s", VCOS_FUNCTION);
 
    /* Delete OES textures */
-   glDeleteTextures(1, &raspitex_state->texture);
-   eglDestroyImageKHR(raspitex_state->display, raspitex_state->egl_image);
-   raspitex_state->egl_image = EGL_NO_IMAGE_KHR;
+   glDeleteTextures(RASPITEX_TEXTURES_MAX, &raspitex_state->textures[0]);
+   eglDestroyImageKHR(raspitex_state->display, raspitex_state->egl_images[0]);
+   raspitex_state->egl_images[0] = EGL_NO_IMAGE_KHR;
 
    glDeleteTextures(1, &raspitex_state->y_texture);
    eglDestroyImageKHR(raspitex_state->display, raspitex_state->y_egl_image);
@@ -227,7 +227,7 @@ error:
  */
 int raspitexutil_create_textures(RASPITEX_STATE *raspitex_state)
 {
-   GLCHK(glGenTextures(1, &raspitex_state->texture));
+   GLCHK(glGenTextures(RASPITEX_TEXTURES_MAX, &raspitex_state->textures[0]));
    GLCHK(glGenTextures(1, &raspitex_state->y_texture));
    GLCHK(glGenTextures(1, &raspitex_state->u_texture));
    GLCHK(glGenTextures(1, &raspitex_state->v_texture));
@@ -353,9 +353,14 @@ int raspitexutil_do_update_texture(EGLDisplay display, EGLenum target,
 int raspitexutil_update_texture(RASPITEX_STATE *raspitex_state,
       EGLClientBuffer mm_buf)
 {
+   raspitex_state->texture_index += 1;
+   if (raspitex_state->texture_index >= raspitex_state->texture_count) {
+     raspitex_state->texture_index = 0;
+   }
    return raspitexutil_do_update_texture(raspitex_state->display,
          EGL_IMAGE_BRCM_MULTIMEDIA, mm_buf,
-         &raspitex_state->texture, &raspitex_state->egl_image);
+         &raspitex_state->textures[raspitex_state->texture_index],
+	 &raspitex_state->egl_images[raspitex_state->texture_index]);
 }
 
 /**

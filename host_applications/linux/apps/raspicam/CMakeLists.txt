@@ -14,6 +14,7 @@ set (GL_SCENE_SOURCES
    gl_scenes/sobel.c
    gl_scenes/square.c
    gl_scenes/teapot.c
+   gl_scenes/timeshift.c
    gl_scenes/vcsm_square.c)
 
 set (COMMON_SOURCES

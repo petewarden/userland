@@ -99,7 +99,7 @@ static int square_update_model(RASPITEX_STATE *state)
 static int square_redraw(RASPITEX_STATE *state)
 {
    /* Bind the OES texture which is used to render the camera preview */
-   GLCHK(glBindTexture(GL_TEXTURE_EXTERNAL_OES, state->texture));
+   GLCHK(glBindTexture(GL_TEXTURE_EXTERNAL_OES, state->textures[0]));
    glLoadIdentity();
    glRotatef(angle, 0.0, 0.0, 1.0);
    glEnableClientState(GL_VERTEX_ARRAY);

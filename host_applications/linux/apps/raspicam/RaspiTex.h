@@ -40,6 +40,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define RASPITEX_VERSION_MAJOR 1
 #define RASPITEX_VERSION_MINOR 0
 
+#define RASPITEX_TEXTURES_MAX (100)
+
 typedef enum {
    RASPITEX_SCENE_SQUARE = 0,
    RASPITEX_SCENE_MIRROR,
@@ -47,6 +49,7 @@ typedef enum {
    RASPITEX_SCENE_YUV,
    RASPITEX_SCENE_SOBEL,
    RASPITEX_SCENE_VCSM_SQUARE,
+   RASPITEX_SCENE_TIMESHIFT,
 
 } RASPITEX_SCENE_T;
 
@@ -156,8 +159,10 @@ typedef struct RASPITEX_STATE
    EGLContext context;                 /// The current EGL context
    const EGLint *egl_config_attribs;   /// GL scenes preferred EGL configuration
 
-   GLuint texture;                     /// Name for the preview texture
-   EGLImageKHR egl_image;              /// The current preview EGL image
+   int texture_count;                 /// How many textures are present
+   int texture_index;                 /// Index of the texture that was last updated
+   GLuint textures[RASPITEX_TEXTURES_MAX];                    /// Name for the preview texture
+   EGLImageKHR egl_images[RASPITEX_TEXTURES_MAX];             /// The current preview EGL image
 
    GLuint y_texture;                   /// The Y plane texture
    EGLImageKHR y_egl_image;            /// EGL image for Y plane texture
