@@ -154,7 +154,30 @@ static int timeshift_redraw(RASPITEX_STATE* state)
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    GLCHK(glUseProgram(timeshift_shader.program));
 
-   const int time_index = (state->texture_count - 1) - state->texture_index;
+   int time_index;
+   switch (state->timeshift_mode) {
+   case RASPITEX_TIMESHIFT_POLARI: {
+     time_index = (state->texture_count - 1) - state->texture_index;
+   } break;
+   case RASPITEX_TIMESHIFT_RANDOM: {
+     time_index = rand() % state->texture_count;
+   } break;
+   case RASPITEX_TIMESHIFT_PING_PONG: {
+     time_index = (state->texture_count - 1) - (state->texture_index * 2);
+     if (time_index < 0) {
+       time_index = -time_index;
+     }
+   } break;
+   case RASPITEX_TIMESHIFT_SLUR: {
+     static float angle = 0.0f;
+     const int delay = fabsf(sinf(angle) * state->texture_count);
+     angle += 0.05f;
+     time_index = (state->texture_index + state->texture_count - delay) % state->texture_count;
+   } break;
+   default: {
+     time_index = state->texture_index;
+   } break;
+   }
    
    /* Bind the Y plane texture */
    GLCHK(glActiveTexture(GL_TEXTURE0));

@@ -98,12 +98,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CommandGLScene   1
 #define CommandGLWin     2
 #define CommandGLTextureCount (3)
+#define CommandTimeshiftMode (4)
 
 static COMMAND_LIST cmdline_commands[] =
 {
    { CommandGLScene, "-glscene",  "gs",  "GL scene square,teapot,mirror,yuv,sobel,vcsm_square", 1 },
    { CommandGLWin,   "-glwin",    "gw",  "GL window settings <'x,y,w,h'>", 1 },
    { CommandGLTextureCount,   "-gltexture_count",    "gw",  "How many textures to buffer", 1 },
+   { CommandTimeshiftMode,   "-timeshift_mode",    "gw",  "Behavior of timeshift effect", 1 },
 };
 
 static int cmdline_commands_size = sizeof(cmdline_commands) / sizeof(cmdline_commands[0]);
@@ -184,6 +186,22 @@ int raspitex_parse_cmdline(RASPITEX_STATE *state,
             // Default to safe size on parse error
 	   state->texture_count = DEFAULT_TEXTURE_COUNT;
          }
+
+         used = 2;
+         break;
+      }
+      case CommandTimeshiftMode: // Selects timeshift effect behavior
+      {
+         if (strcmp(arg2, "polari") == 0)
+            state->timeshift_mode = RASPITEX_TIMESHIFT_POLARI;
+         else if (strcmp(arg2, "random") == 0)
+            state->timeshift_mode = RASPITEX_TIMESHIFT_RANDOM;
+         else if (strcmp(arg2, "pingpong") == 0)
+            state->timeshift_mode = RASPITEX_TIMESHIFT_PING_PONG;
+         else if (strcmp(arg2, "slur") == 0)
+            state->timeshift_mode = RASPITEX_TIMESHIFT_SLUR;
+         else
+            vcos_log_error("Unknown timeshift mode %s (expected 'polari', 'random', or 'reverse')", arg2);
 
          used = 2;
          break;
@@ -680,6 +698,7 @@ void raspitex_set_defaults(RASPITEX_STATE *state)
    state->width = DEFAULT_WIDTH;
    state->height = DEFAULT_HEIGHT;
    state->scene_id = RASPITEX_SCENE_SQUARE;
+   state->timeshift_mode = RASPITEX_TIMESHIFT_POLARI;
    state->texture_count = DEFAULT_TEXTURE_COUNT;
    state->texture_index = 0;
    
