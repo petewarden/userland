@@ -58,6 +58,7 @@ typedef enum {
   RASPITEX_TIMESHIFT_RANDOM,
   RASPITEX_TIMESHIFT_PING_PONG,
   RASPITEX_TIMESHIFT_SLUR,
+  RASPITEX_TIMESHIFT_DEMO, // Must be last in enum
 } RASPITEX_TIMESHIFT_T;
 
 struct RASPITEX_STATE;
@@ -167,6 +168,7 @@ typedef struct RASPITEX_STATE
    const EGLint *egl_config_attribs;   /// GL scenes preferred EGL configuration
 
    RASPITEX_TIMESHIFT_T timeshift_mode;                 /// How to run the timeshift effect
+   int timeshift_demo_period;         /// How often to switch the demo mode
    int texture_count;                 /// How many textures are present
    int texture_index;                 /// Index of the texture that was last updated
    GLuint textures[RASPITEX_TEXTURES_MAX];                    /// Name for the preview texture

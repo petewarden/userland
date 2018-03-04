@@ -94,11 +94,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define DEFAULT_WIDTH   640
 #define DEFAULT_HEIGHT  480
 #define DEFAULT_TEXTURE_COUNT (30)
+#define DEFAULT_TIMESHIFT_DEMO_PERIOD (30)
 
 #define CommandGLScene   1
 #define CommandGLWin     2
 #define CommandGLTextureCount (3)
 #define CommandTimeshiftMode (4)
+#define CommandTimeshiftDemoPeriod (5)
 
 static COMMAND_LIST cmdline_commands[] =
 {
@@ -106,6 +108,7 @@ static COMMAND_LIST cmdline_commands[] =
    { CommandGLWin,   "-glwin",    "gw",  "GL window settings <'x,y,w,h'>", 1 },
    { CommandGLTextureCount,   "-gltexture_count",    "gw",  "How many textures to buffer", 1 },
    { CommandTimeshiftMode,   "-timeshift_mode",    "gw",  "Behavior of timeshift effect", 1 },
+   { CommandTimeshiftDemoPeriod,   "-timeshift_demo_period",    "gw",  "Number of seconds between timeshift mode changes in demo", 1 },
 };
 
 static int cmdline_commands_size = sizeof(cmdline_commands) / sizeof(cmdline_commands[0]);
@@ -176,6 +179,7 @@ int raspitex_parse_cmdline(RASPITEX_STATE *state,
          used = 2;
          break;
       }
+
       case CommandGLTextureCount: // How many textures to buffer
       {
          int tmp;
@@ -190,6 +194,7 @@ int raspitex_parse_cmdline(RASPITEX_STATE *state,
          used = 2;
          break;
       }
+      
       case CommandTimeshiftMode: // Selects timeshift effect behavior
       {
          if (strcmp(arg2, "polari") == 0)
@@ -200,12 +205,30 @@ int raspitex_parse_cmdline(RASPITEX_STATE *state,
             state->timeshift_mode = RASPITEX_TIMESHIFT_PING_PONG;
          else if (strcmp(arg2, "slur") == 0)
             state->timeshift_mode = RASPITEX_TIMESHIFT_SLUR;
+         else if (strcmp(arg2, "demo") == 0)
+            state->timeshift_mode = RASPITEX_TIMESHIFT_DEMO;
          else
-            vcos_log_error("Unknown timeshift mode %s (expected 'polari', 'random', or 'reverse')", arg2);
+            vcos_log_error("Unknown timeshift mode %s (expected 'polari', 'random', 'pingpong', 'slur', or 'demo')", arg2);
 
          used = 2;
          break;
       }
+      
+      case CommandTimeshiftDemoPeriod: // How frequently to change modes
+      {
+         int tmp;
+         tmp = sscanf(arg2, "%d",
+               &state->timeshift_demo_period);
+         if (tmp != 1)
+         {
+            // Default to safe size on parse error
+	   state->timeshift_demo_period = DEFAULT_TIMESHIFT_DEMO_PERIOD;
+         }
+
+         used = 2;
+         break;
+      }
+
    }
    return used;
 }
@@ -699,6 +722,7 @@ void raspitex_set_defaults(RASPITEX_STATE *state)
    state->height = DEFAULT_HEIGHT;
    state->scene_id = RASPITEX_SCENE_SQUARE;
    state->timeshift_mode = RASPITEX_TIMESHIFT_POLARI;
+   state->timeshift_demo_period = DEFAULT_TIMESHIFT_DEMO_PERIOD;
    state->texture_count = DEFAULT_TEXTURE_COUNT;
    state->texture_index = 0;
    

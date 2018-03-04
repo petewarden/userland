@@ -34,9 +34,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
+#include <sys/time.h>
+
 /* \file timeshift.c
- * Example code for implementing Sobel filter as GLSL shaders.
- * The input image is a greyscale texture from the MMAL buffer Y plane.
+ * Example code for timeshifting effects with a buffer of frames.
  */
 
 #define TIMESHIFT_VSHADER_SOURCE \
@@ -47,13 +48,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     "   gl_Position = vec4(vertex, 0.0, 1.0);\n" \
     "}\n"
 
-/* Example Sobel edge detct shader. The texture format for
- * EGL_IMAGE_BRCM_MULTIMEDIA_Y is a one byte per pixel greyscale GL_LUMINANCE.
- * If the output is to be fed into another image processing shader then it may
- * be worth changing this code to take 4 input Y pixels and pack the result
- * into a 32bpp RGBA pixel.
- */
-#define TIMESHIFT_FSHADER_SOURCE \
+#define TIMESHIFT_FSHADER_SOURCE		       \
     "#extension GL_OES_EGL_image_external : require\n" \
     "uniform samplerExternalOES tex;\n" \
     "varying vec2 texcoord;\n" \
@@ -154,8 +149,18 @@ static int timeshift_redraw(RASPITEX_STATE* state)
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    GLCHK(glUseProgram(timeshift_shader.program));
 
+   int timeshift_mode;
+   if (state->timeshift_mode == RASPITEX_TIMESHIFT_DEMO) {
+     struct timeval curTime;
+     gettimeofday(&curTime, NULL);
+     // The demo value has to be at the end of the enum for this to work.
+     timeshift_mode = (curTime.tv_sec / state->timeshift_demo_period) % RASPITEX_TIMESHIFT_DEMO;
+   } else {
+     timeshift_mode = state->timeshift_mode;
+   }
+   
    int time_index;
-   switch (state->timeshift_mode) {
+   switch (timeshift_mode) {
    case RASPITEX_TIMESHIFT_POLARI: {
      time_index = (state->texture_count - 1) - state->texture_index;
    } break;
